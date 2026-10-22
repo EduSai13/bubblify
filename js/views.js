@@ -19,7 +19,7 @@ R.class=id=>{const c=S.cls(id);if(!c)return'<p>Class not found.</p>';
  <table><tr><th>ID</th><th>Name</th><th></th></tr>${c.students.map(s=>`<tr><td class="id">${c.code}-${s.no}</td><td>${e(s.name)}</td><td><button class="btn del" data-a="delStudent" data-id="${c.id}" data-s="${s.id}">Remove</button></td></tr>`).join('')}</table>`};
 
 R.quizzes=()=>{const qs=S.data().quizzes;return head('Quizzes','Build the answer key, then print sheets.')+
- `<div class="row"><button class="btn pri" data-a="newQuiz">New quiz</button></div><div class="grid">${qs.map(q=>{const c=S.cls(q.classId);return `<div class="card"><b>${e(q.name)}</b>${Sheet.items(q).length} items${c?', '+e(c.name):''}<div class="row"><a class="btn" href="#/quiz/${q.id}">Edit</a><a class="btn" href="#/sheet/${q.id}">Sheets</a></div></div>`}).join('')||'<p>No quizzes yet.</p>'}</div>`};
+ `<div class="row"><button class="btn pri" data-a="newQuiz">New quiz</button></div><div class="grid">${qs.map(q=>{const c=S.cls(q.classId);return `<div class="card"><b>${e(q.name)}</b>${Sheet.items(q).length} items, ${(q.papers||[]).length} papers${c?', '+e(c.name):''}<div class="row"><a class="btn" href="#/quiz/${q.id}">Edit</a><a class="btn" href="#/sheet/${q.id}">Sheets</a></div></div>`}).join('')||'<p>No quizzes yet.</p>'}</div>`};
 
 R.quiz=id=>{const q=S.quiz(id);if(!q)return'<p>Quiz not found.</p>';
  const sec=(s,i)=>`<div class="sec"><div class="row"><select data-f="type" data-id="${q.id}" data-i="${i}" aria-label="Item type">${opt('mcq',s.type,'Multiple choice')}${opt('tf',s.type,'True or False')}</select>
@@ -30,10 +30,6 @@ R.quiz=id=>{const q=S.quiz(id);if(!q)return'<p>Quiz not found.</p>';
  return `<a href="#/quizzes">Back to quizzes</a>`+head('Edit quiz','Changes save automatically.')+
  `<div class="row"><input data-f="name" data-id="${q.id}" value="${e(q.name)}" aria-label="Quiz name"><select data-f="classId" data-id="${q.id}" aria-label="Class"><option value="">No class</option>${S.data().classes.map(c=>opt(c.id,q.classId,e(c.name))).join('')}</select><a class="btn pri" href="#/sheet/${q.id}">Answer sheets</a><button class="btn del" data-a="delQuiz" data-id="${q.id}">Delete</button></div>`+
  q.sections.map(sec).join('')+`<div class="row"><button class="btn" data-a="addSec" data-id="${q.id}">Add section</button></div><h2>Answer key</h2><div class="items">${Sheet.items(q).map(it).join('')}</div>`};
-
-R.sheet=id=>{const q=S.quiz(id);if(!q)return'<p>Quiz not found.</p>';const lay=Sheet.layout(q);
- return `<a href="#/quiz/${q.id}">Back to quiz</a>`+head('Answer sheets',e(q.name))+
- `<div class="note">Print at 100% (Actual size). Bubble positions depend on true-size output.</div><div class="row"><button class="btn pri" data-a="print" data-id="${q.id}">Print or save as PDF</button></div><div class="pages">${lay.pages.map((p,i)=>Sheet.svg(q,lay,i)).join('')}</div>`};
 
 R.scan=()=>soon('Scan papers','Camera scanning, ID reading, and name crops.');
 R.results=()=>soon('Results','Score summaries and item analysis.');
@@ -50,7 +46,6 @@ const A={
  addSec(d){S.quiz(d.id).sections.push({type:'mcq',count:10,opts:4});S.save();App.render()},
  delSec(d){S.quiz(d.id).sections.splice(+d.i,1);S.save();App.render()},
  key(d,el){const q=S.quiz(d.id);if(q.key[d.n]===d.l){delete q.key[d.n];el.classList.remove('on')}else{q.key[d.n]=d.l;el.parentNode.querySelectorAll('.o').forEach(b=>b.classList.toggle('on',b===el))}S.save()},
- print(d){const q=S.quiz(d.id),lay=Sheet.layout(q),w=open('');w.document.write('<title>'+e(q.name)+'</title><style>@page{size:A4;margin:0}body{margin:0}svg{display:block;page-break-after:always}</style>'+lay.pages.map((p,i)=>Sheet.svg(q,lay,i)).join(''));w.document.close();setTimeout(()=>w.print(),300)},
  backup(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([S.exportJSON()],{type:'application/json'}));a.download='bubblify-backup.json';a.click()},
  clear(){if(confirm('Erase all classes, quizzes and results?')){S.clear();App.render()}}
 };
