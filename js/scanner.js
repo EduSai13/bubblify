@@ -2,7 +2,7 @@
 // then measures how dark each bubble is. Tuning knob: T (how much darker than the row's
 // lightest bubble counts as "shaded").
 const Scanner=(()=>{
-const T=.2;
+const T=()=>+localStorage.getItem('bubblify.sens')||.14;
 const gray=im=>{const d=im.data,n=im.width*im.height,g=new Uint8Array(n);for(let i=0,j=0;i<n;i++,j+=4)g[i]=(d[j]*77+d[j+1]*150+d[j+2]*29)>>8;return g};
 
 function findMarks(g,w,h,SW,SH){
@@ -43,7 +43,7 @@ const mean=(g,w,h,H,cx,cy,r)=>{let s=0,n=0;
  for(let i=-2;i<=2;i++)for(let j=-2;j<=2;j++){const dx=i*r/2,dy=j*r/2;if(dx*dx+dy*dy>r*r)continue;const[u,v]=proj(H,cx+dx,cy+dy),x=Math.round(u),y=Math.round(v);if(x<0||y<0||x>=w||y>=h)continue;s+=g[y*w+x];n++}
  return n?s/n:255};
 // Indices of bubbles clearly darker than the lightest bubble in the same row.
-const shaded=ms=>{const ref=Math.max(...ms);return ms.reduce((a,v,i)=>(ref-v)/ref>=T?[...a,i]:a,[])};
+const shaded=ms=>{const ref=Math.max(...ms);return ms.reduce((a,v,i)=>(ref-v)/ref>=T()?[...a,i]:a,[])};
 
 function crop(g,w,h,H,b,ppm=4){
  const cw=Math.round(b.w*ppm),ch=Math.round(b.h*ppm),c=document.createElement('canvas');c.width=cw;c.height=ch;

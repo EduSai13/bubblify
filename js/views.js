@@ -18,9 +18,6 @@ R.class=id=>{const c=S.cls(id);if(!c)return'<p>Class not found.</p>';
  `<div class="row"><button class="btn pri" data-a="addStudent" data-id="${c.id}">Add student</button><button class="btn del" data-a="delClass" data-id="${c.id}">Delete class</button></div>
  <table><tr><th>ID</th><th>Name</th><th></th></tr>${c.students.map(s=>`<tr><td class="id">${c.code}-${s.no}</td><td>${e(s.name)}</td><td><button class="btn del" data-a="delStudent" data-id="${c.id}" data-s="${s.id}">Remove</button></td></tr>`).join('')}</table>`};
 
-R.quizzes=()=>{const qs=S.data().quizzes;return head('Quizzes','Build the answer key, then print sheets.')+
- `<div class="row"><button class="btn pri" data-a="newQuiz">New quiz</button></div><div class="grid">${qs.map(q=>{const c=S.cls(q.classId);return `<div class="card"><b>${e(q.name)}</b>${Sheet.items(q).length} items, ${(q.papers||[]).length} papers${c?', '+e(c.name):''}<div class="row"><a class="btn" href="#/quiz/${q.id}">Edit</a><a class="btn" href="#/sheet/${q.id}">Sheets</a></div></div>`}).join('')||'<p>No quizzes yet.</p>'}</div>`};
-
 R.quiz=id=>{const q=S.quiz(id);if(!q)return'<p>Quiz not found.</p>';
  const sec=(s,i)=>`<div class="sec"><div class="row"><select data-f="type" data-id="${q.id}" data-i="${i}" aria-label="Item type">${opt('mcq',s.type,'Multiple choice')}${opt('tf',s.type,'True or False')}</select>
  <label>Items <input type="number" min="1" max="200" style="width:72px" data-f="count" data-id="${q.id}" data-i="${i}" value="${s.count}"></label>

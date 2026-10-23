@@ -37,7 +37,7 @@ function tick(){
  }else{stable=0;last=null;if(++lost>=6)armed=true;if(Date.now()>hold)say(r.dark?'Too dark, add more light.':'Looking for the four corner squares...')}
 }
 async function start(){
- try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1920},height:{ideal:1080}},audio:false})}
+ try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1920},height:{ideal:1080},advanced:[{focusMode:'continuous'}]},audio:false})}
  catch(e){say('Camera unavailable ('+(e.name||'error')+'). It needs HTTPS or localhost; "Upload photos" works anywhere.');return}
  const v=$('#scvid');v.srcObject=stream;await v.play();timer=setInterval(tick,300);armed=true;
  $('[data-a=scanCam]').textContent='Stop camera';say('Looking for the four corner squares...');
@@ -54,7 +54,7 @@ V.R.scan=()=>{
  if(lay.pages.length>1)w.push('This quiz needs more than one page. Scanning supports single-page sheets for now.');
  if(o.per===2)w.push('2 sheets per paper: cut the sheets apart on the dashed line before scanning.');
  return h+(w.length?`<div class="note">${w.join('<br>')}</div>`:'')+
- `<div class="row"><select data-r="scanquiz" aria-label="Quiz">${qs.map(x=>`<option value="${x.id}"${x.id===q.id?' selected':''}>${esc(x.name)}</option>`).join('')}</select><label class="f row"><input type="checkbox" id="scauto" checked> Auto-capture</label></div>
+ `<div class="row"><select data-r="scanquiz" aria-label="Quiz">${qs.map(x=>`<option value="${x.id}"${x.id===q.id?' selected':''}>${esc(QList.label(x))}</option>`).join('')}</select><label class="f row"><input type="checkbox" id="scauto" checked> Auto-capture</label></div>
  <div class="cam"><video id="scvid" playsinline muted></video><canvas id="scov"></canvas></div><p id="scstat" class="sub">Camera is off.</p>
  <div class="row"><button class="btn pri" data-a="scanCam">Start camera</button><button class="btn" data-a="scanNow">Capture now</button><label class="btn">Upload photos<input type="file" accept="image/*" multiple hidden data-r="scanfile"></label></div>
  <h2>This session</h2><div id="scsess"></div>`;
@@ -63,8 +63,11 @@ Object.assign(V.A,{
  scanCam:()=>stream?(stop(),App.render()):start(),
  scanNow:()=>{const v=$('#scvid');stream&&v.videoWidth?capture(v):say('Start the camera first, or upload a photo.')}
 });
+const st1=V.R.settings;
+V.R.settings=()=>st1()+`<h2>Scanner</h2><label class="f"><span>Mark sensitivity</span><select data-r="sens">${[['0.2','Standard'],['0.14','High (default)'],['0.1','Very high']].map(([v,t])=>`<option value="${v}"${(localStorage.getItem('bubblify.sens')||'0.14')===v?' selected':''}>${t}</option>`).join('')}</select></label><p class="sub">Raise it if light pencil marks are missed. Blurry photos need darker marks or a higher setting; too high may pick up smudges.</p>`;
 const prev=V.change;
 V.change=el=>{
+ if(el.dataset.r==='sens'){localStorage.setItem('bubblify.sens',el.value);return}
  if(el.dataset.r==='scanquiz'){stop();qid=el.value;localStorage.setItem('bubblify.scanQuiz',qid);App.render();return}
  if(el.dataset.r==='scanfile'){
   [...el.files].reduce((p,f)=>p.then(()=>new Promise(res=>{const im=new Image();im.onload=()=>{capture(im);URL.revokeObjectURL(im.src);res()};im.onerror=res;im.src=URL.createObjectURL(f)})),Promise.resolve()).then(()=>{el.value=''});

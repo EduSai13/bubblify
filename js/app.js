@@ -10,7 +10,7 @@ const App={
 };
 const view=document.getElementById('view');
 view.addEventListener('click',ev=>{const el=ev.target.closest('[data-a]');if(el&&V.A[el.dataset.a])V.A[el.dataset.a](el.dataset,el)});
-view.addEventListener('change',ev=>{if(ev.target.matches('[data-f],[data-o],[data-r],[data-p]'))V.change(ev.target)});
+view.addEventListener('change',ev=>{if(ev.target.matches('[data-f],[data-o],[data-r],[data-p],[data-l]'))V.change(ev.target)});
 addEventListener('hashchange',App.render);
 App.render();
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});

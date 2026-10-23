@@ -13,7 +13,7 @@ return{
  quiz:id=>d.quizzes.find(q=>q.id===id),
  addClass(name){const code=next(d.classes.map(c=>c.code));if(!code)return null;const c={id:uid(),code,name,students:[]};d.classes.push(c);save();return c},
  addStudent(c,name){const no=next(c.students.map(s=>s.no));if(!no)return null;c.students.push({id:uid(),no,name});save();return no},
- addQuiz(){const q={id:uid(),name:'Untitled quiz',classId:'',ver:1,sections:[{type:'mcq',count:10,opts:4}],key:{}};d.quizzes.unshift(q);save();return q},
+ addQuiz(){const q={id:uid(),name:'Untitled quiz',classId:'',ver:1,created:Date.now(),tags:[],sections:[{type:'mcq',count:10,opts:4}],key:{}};d.quizzes.unshift(q);save();return q},
  exportJSON:()=>JSON.stringify(d),
  importJSON(t){const n=JSON.parse(t);if(!n.classes||!n.quizzes)throw 0;d=n;save()},
  clear(){d={classes:[],quizzes:[]};save()}

@@ -4,7 +4,7 @@ const S=Store,uid=()=>Math.random().toString(36).slice(2,8);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const head=(t,s)=>`<h1>${t}</h1><p class="sub">${s}</p>`;
 const pct=(a,b)=>b?Math.round(a/b*1000)/10:0,f1=x=>Math.round(x*10)/10;
-let tab='overview';
+let tab='overview',cf='';const cn=c=>(S.data().classes.find(x=>x.code===c)||{name:'Class '+c}).name;
 const keyed=q=>Sheet.items(q).filter(i=>q.key[i.no]);
 const who=sid=>{const[c,n]=String(sid||'').split('-'),cl=S.data().classes.find(x=>x.code===c),st=cl&&cl.students.find(s=>s.no===n);return st?st.name:null};
 const score=(q,p)=>{const k=keyed(q),r=k.filter(i=>p.answers[i.no]===q.key[i.no]).length;return{r,t:k.length,p:pct(r,k.length)}};
@@ -18,9 +18,9 @@ const itemStats=(q,ps)=>{
   return{no:i.no,k,p:ok/ps.length,blank,dist,d:ps.length>=4?rate(up)-rate(lo):null}})};
 
 V.R.results=id=>{
- const q=S.quiz(id)||S.data().quizzes[0],h=head('Results','Score summaries and item analysis.');
+ const q=S.quiz(id)||S.data().quizzes[0],h=q?head(esc(q.name),'Results and item analysis.'):head('Results','');
  if(!q)return h+'<p>Create a quiz first.</p>';
- const ps=q.papers||[],sc=ps.map(p=>score(q,p).p),T=(t,l)=>`<button class="btn${tab===t?' pri':''}" data-a="tab" data-t="${t}">${l}</button>`;
+ const all=q.papers||[],cls=[...new Set(all.map(p=>String(p.sid).slice(0,2)).filter(Boolean))].sort(),cfv=cls.includes(cf)?cf:'',ps=cfv?all.filter(p=>String(p.sid).slice(0,2)===cfv):all,sc=ps.map(p=>score(q,p).p),T=(t,l)=>`<button class="btn${tab===t?' pri':''}" data-a="tab" data-t="${t}">${l}</button>`;
  let o='';
  if(!keyed(q).length)o+='<div class="note">Set the answer key first, then add papers.</div>';
  if(!ps.length)o+='<p>No papers yet. Add one manually, or scan once the scanner is built.</p>';
@@ -32,7 +32,7 @@ V.R.results=id=>{
  }else{
   o+=`<div class="tbl"><table><tr><th>ID</th><th>Name</th><th>Score</th><th>%</th><th></th></tr>${[...ps].sort((x,y)=>String(x.sid).localeCompare(y.sid)).map(p=>{const s=score(q,p);return `<tr><td class="id">${esc(p.sid)||'-'}</td><td>${esc(who(p.sid)||'Unknown')}</td><td>${s.r}/${s.t}</td><td>${s.p}%</td><td><a class="btn" href="#/paper/${q.id}/${p.id}">Review</a></td></tr>`}).join('')}</table></div>`;
  }
- return h+`<div class="row"><select data-r="quiz" aria-label="Quiz">${S.data().quizzes.map(x=>`<option value="${x.id}"${x.id===q.id?' selected':''}>${esc(x.name)}</option>`).join('')}</select><button class="btn pri" data-a="addPaper" data-id="${q.id}">Add paper</button><button class="btn" data-a="csv" data-id="${q.id}">Export CSV</button></div><div class="row">${T('overview','Overview')}${T('item','By item')}${T('student','By student')}</div>`+o;
+ return h+`<div class="row"><a class="btn" href="#/results">All results</a><button class="btn pri" data-a="addPaper" data-id="${q.id}">Add paper</button><button class="btn" data-a="csv" data-id="${q.id}">Export CSV</button>${cls.length>1?`<select data-r="cf" aria-label="Class filter"><option value="">All classes</option>${cls.map(c=>`<option value="${c}"${c===cfv?' selected':''}>${esc(cn(c))}</option>`).join('')}</select>`:''}</div><div class="row">${T('overview','Overview')}${T('item','By item')}${T('student','By student')}</div>`+o;
 };
 
 V.R.paper=(qid,pid)=>{
@@ -62,7 +62,7 @@ Object.assign(V.A,{
 
 const prev=V.change;
 V.change=el=>{
- if(el.dataset.r==='quiz'){location.hash='#/results/'+el.value;return}
+ if(el.dataset.r==='cf'){cf=el.value;App.render();return}
  if(el.dataset.p==='sid'){const p=S.quiz(el.dataset.q).papers.find(x=>x.id===el.dataset.id),v=el.value.replace(/\D/g,'').slice(0,4);p.sid=v.length>2?v.slice(0,2)+'-'+v.slice(2):v;S.save();App.render();return}
  prev(el)};
 const st0=V.R.settings;
