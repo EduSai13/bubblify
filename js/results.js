@@ -38,10 +38,10 @@ V.R.results=id=>{
 V.R.paper=(qid,pid)=>{
  const q=S.quiz(qid),p=q&&(q.papers||[]).find(x=>x.id===pid);if(!p)return'<p>Paper not found.</p>';
  const s=score(q,p),nm=who(p.sid);
- const it=i=>{const k=q.key[i.no];return `<div class="it"><b>${i.no}</b>${Array.from({length:i.opts},(_,j)=>{const l=Sheet.lab(i.tf,j),on=p.answers[i.no]===l;return `<button class="o${on?(k?(l===k?' ok':' bad'):' on'):''}${k===l?' key':''}" data-a="ans" data-q="${q.id}" data-id="${p.id}" data-n="${i.no}" data-l="${l}">${l}</button>`}).join('')}</div>`};
- return `<a href="#/results/${q.id}">Back to results</a>`+head(`${s.r} / ${s.t} = ${s.p}%`,esc(nm||(p.sid?'ID not in roster':'No ID yet')))+
+ const it=i=>{const k=q.key[i.no];return `<div class="it${p.multi&&p.multi[i.no]?' multi':''}"><b>${i.no}</b>${Array.from({length:i.opts},(_,j)=>{const l=Sheet.lab(i.tf,j),on=p.answers[i.no]===l;return `<button class="o${on?(k?(l===k?' ok':' bad'):' on'):''}${k===l?' key':''}" data-a="ans" data-q="${q.id}" data-id="${p.id}" data-n="${i.no}" data-l="${l}">${l}</button>`}).join('')}</div>`};
+ return `<a href="#/results/${q.id}">Back to results</a>`+head(`${s.r} / ${s.t} = ${s.p}%`,esc(nm||(p.sid?'ID not in roster':'No ID yet')))+(p.crop?`<img class="crop" alt="Handwritten name" src="${p.crop}">`:'')+
  `<div class="row"><label>Student ID <input data-p="sid" data-q="${q.id}" data-id="${p.id}" value="${esc(p.sid)}" placeholder="XX-XX" size="6"></label><button class="btn del" data-a="delPaper" data-q="${q.id}" data-id="${p.id}">Delete paper</button></div>
- <p class="sub">Click a bubble to change an answer. Green = correct, red = wrong, thick ring = the key.</p><div class="items">${Sheet.items(q).map(it).join('')}</div>`;
+ <p class="sub">Click a bubble to change an answer. Green = correct, red = wrong, thick ring = the key, yellow row = more than one bubble was marked.</p><div class="items">${Sheet.items(q).map(it).join('')}</div>`;
 };
 
 Object.assign(V.A,{

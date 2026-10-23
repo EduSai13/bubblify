@@ -73,5 +73,10 @@ function papers(q){
  }
  return{svgs,PW,PH,lay,o};
 }
-return{items,layout,papers,lab,opts};
+// Positions the scanner reads (mm, sheet coordinates); must match inner() above.
+const geo=lay=>{const{W,H}=lay,gx=W-M-4*PI-4,gy=M+20;
+ return{marks:[[8.5,8.5],[W-8.5,8.5],[W-8.5,H-8.5],[8.5,H-8.5]],
+  id:[0,1,2,3].map(c=>Array.from({length:10},(_,d)=>({d,x:gx+c*PI+(c>1?4:0)+PI/2,y:gy+d*PI+PI/2}))),
+  name:{x:M,y:M+16,w:W-2*M-36,h:14}}};
+return{items,layout,papers,lab,opts,geo};
 })();
