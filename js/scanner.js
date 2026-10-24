@@ -66,7 +66,7 @@ function read(cv,q){
  const m=findMarks(g,w,h,lay.W,lay.H);if(!m)return{err:'Could not find all four corner squares. Show the whole sheet, upright and flat.'};
  const geo=Sheet.geo(lay),H=homog(geo.marks,m),answers={},multi={};let digits='';
  geo.id.forEach(col=>{const on=shaded(col.map(b=>mean(g,w,h,H,b.x,b.y,1.4)));digits+=on.length===1?col[on[0]].d:'?'});
- lay.pages[0].cells.forEach(c=>{if(c.h)return;const on=shaded(c.bubbles.map(b=>mean(g,w,h,H,b.x,b.y,1.5)));
+ lay.pages[0].cells.forEach(c=>{if(c.h)return;const on=shaded(c.bubbles.map(b=>mean(g,w,h,H,b.x,b.y,lay.r*.67)));
   if(on.length===1)answers[c.no]=c.bubbles[on[0]].l;else if(on.length>1)multi[c.no]=1});
  const idOk=!digits.includes('?');
  return{idOk,sid:idOk?digits.slice(0,2)+'-'+digits.slice(2):'',answers,multi,crop:o.name?crop(g,w,h,H,geo.name):null};

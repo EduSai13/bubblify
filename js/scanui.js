@@ -53,7 +53,7 @@ V.R.scan=()=>{
  const lay=Sheet.layout(q),o=Sheet.opts(q),w=[];
  if(!Object.keys(q.key).length)w.push('Set the answer key first, or scores will show 0/0.');
  if(lay.pages.length>1)w.push('This quiz needs more than one page. Scanning supports single-page sheets for now.');
- if(o.per===2)w.push('2 sheets per paper: cut the sheets apart on the dashed line before scanning.');
+ if(o.per>1)w.push('Several sheets per paper: cut them apart on the dashed lines before scanning.');
  return h+(w.length?`<div class="note">${w.join('<br>')}</div>`:'')+
  `<div class="row"><label class="f row"><input type="checkbox" id="scauto" checked> Auto-capture</label></div>
  <div class="cam"><video id="scvid" playsinline muted></video><canvas id="scov"></canvas></div><p id="scstat" class="sub">Camera is off. Hold the sheet upright with all four corner squares in view.</p>

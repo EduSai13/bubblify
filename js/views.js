@@ -26,7 +26,7 @@ R.quiz=id=>{const q=S.quiz(id);if(!q)return'<p>Quiz not found.</p>';
  const it=x=>`<div class="it"><b>${x.no}</b>${Array.from({length:x.opts},(_,j)=>{const l=Sheet.lab(x.tf,j);return `<button class="o${q.key[x.no]===l?' on':''}" data-a="key" data-id="${q.id}" data-n="${x.no}" data-l="${l}">${l}</button>`}).join('')}</div>`;
  return `<a href="#/quizzes">Back to quizzes</a>`+head('Edit quiz','Changes save automatically.')+
  `<div class="row"><input data-f="name" data-id="${q.id}" value="${e(q.name)}" aria-label="Quiz name"><select data-f="classId" data-id="${q.id}" aria-label="Class"><option value="">No class</option>${S.data().classes.map(c=>opt(c.id,q.classId,e(c.name))).join('')}</select><a class="btn pri" href="#/quiz/${q.id}/sheets">Answer sheets</a><button class="btn del" data-a="delQuiz" data-id="${q.id}">Delete</button></div>`+
- q.sections.map(sec).join('')+`<div class="row"><button class="btn" data-a="addSec" data-id="${q.id}">Add section</button></div><h2>Answer key</h2><div class="items">${Sheet.items(q).map(it).join('')}</div>`};
+ q.sections.map(sec).join('')+`<div class="row"><button class="btn" data-a="addSec" data-id="${q.id}">Add section</button></div><h2>Answer key</h2><div class="items">${Sheet.blocks(q).map(b=>`<div class="g5">${b.map(it).join('')}</div>`).join('')}</div>`};
 
 R.scan=()=>soon('Scan papers','Camera scanning, ID reading, and name crops.');
 R.results=()=>soon('Results','Score summaries and item analysis.');
