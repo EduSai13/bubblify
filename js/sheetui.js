@@ -9,7 +9,7 @@ V.R.sheet=id=>{
  const q=S.quiz(id);if(!q)return'<p>Quiz not found.</p>';
  const k=Sheet.papers(q),o=k.o,land=o.per===2;
  return `<a href="#/quiz/${q.id}">Back to quiz</a><h1>Answer sheets</h1><p class="sub">${esc(q.name)}</p>
- <div class="note">Print at 100% (Actual size). Bubble positions depend on true-size output.</div>
+ 
  <div class="split"><div class="panel">
  ${f('Paper',sel(o,'paper',[['A4','A4 (210 x 297 mm)'],['Letter','Letter (8.5 x 11 in)'],['Legal','Legal (8.5 x 13 in)']]))}
  ${f('Sheets per paper',sel(o,'per',[[1,'1'],[2,'2 (landscape)']]))}
@@ -20,7 +20,7 @@ V.R.sheet=id=>{
  ${chk(o,'name','Show name field')}${chk(o,'calib','Calibration bar')}
  ${f('Instructions',`<textarea rows="3" data-o="instr">${esc(o.instr)}</textarea>`)}
  <p class="sub">Columns: ${k.lay.cols} (max ${k.lay.max} fit). ${k.lay.pages.length} page(s) per sheet, ${k.svgs.length} paper(s) to print.</p></div>
- <div><div class="row"><button class="btn pri" data-a="print" data-id="${q.id}">Print or save as PDF</button></div>
+ <div><div class="row"><button class="btn pri" data-a="print" data-id="${q.id}">Print or save as PDF</button><span class="sub" style="margin:0">Print at 100% / Actual size</span></div>
  <div class="pages">${k.svgs.map(s=>`<div class="pv${land?' land':''}">${s}</div>`).join('')}</div></div></div>`;
 };
 

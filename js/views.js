@@ -2,7 +2,7 @@
 const V=(()=>{
 const S=Store,R={};
 const e=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const head=(t,s)=>`<h1>${t}</h1><p class="sub">${s}</p>`;
+const head=t=>`<h1>${t}</h1>`;
 const soon=(t,s)=>head(t,s)+`<div class="note">Coming in the next build step. Every sheet already stores each bubble's position for the scanner to read.</div>`;
 const opt=(v,a,t)=>`<option value="${v}"${v==a?' selected':''}>${t}</option>`;
 
@@ -25,20 +25,20 @@ R.quiz=id=>{const q=S.quiz(id);if(!q)return'<p>Quiz not found.</p>';
  ${q.sections.length>1?`<button class="btn del" data-a="delSec" data-id="${q.id}" data-i="${i}">Remove section</button>`:''}</div></div>`;
  const it=x=>`<div class="it"><b>${x.no}</b>${Array.from({length:x.opts},(_,j)=>{const l=Sheet.lab(x.tf,j);return `<button class="o${q.key[x.no]===l?' on':''}" data-a="key" data-id="${q.id}" data-n="${x.no}" data-l="${l}">${l}</button>`}).join('')}</div>`;
  return `<a href="#/quizzes">Back to quizzes</a>`+head('Edit quiz','Changes save automatically.')+
- `<div class="row"><input data-f="name" data-id="${q.id}" value="${e(q.name)}" aria-label="Quiz name"><select data-f="classId" data-id="${q.id}" aria-label="Class"><option value="">No class</option>${S.data().classes.map(c=>opt(c.id,q.classId,e(c.name))).join('')}</select><a class="btn pri" href="#/sheet/${q.id}">Answer sheets</a><button class="btn del" data-a="delQuiz" data-id="${q.id}">Delete</button></div>`+
+ `<div class="row"><input data-f="name" data-id="${q.id}" value="${e(q.name)}" aria-label="Quiz name"><select data-f="classId" data-id="${q.id}" aria-label="Class"><option value="">No class</option>${S.data().classes.map(c=>opt(c.id,q.classId,e(c.name))).join('')}</select><a class="btn pri" href="#/quiz/${q.id}/sheets">Answer sheets</a><button class="btn del" data-a="delQuiz" data-id="${q.id}">Delete</button></div>`+
  q.sections.map(sec).join('')+`<div class="row"><button class="btn" data-a="addSec" data-id="${q.id}">Add section</button></div><h2>Answer key</h2><div class="items">${Sheet.items(q).map(it).join('')}</div>`};
 
 R.scan=()=>soon('Scan papers','Camera scanning, ID reading, and name crops.');
 R.results=()=>soon('Results','Score summaries and item analysis.');
 R.settings=()=>head('Settings','Your data lives in this browser. Back it up regularly.')+
- `<div class="row"><button class="btn" data-a="backup">Download backup</button><label class="btn">Restore from file<input type="file" accept=".json" data-f="restore" hidden></label><button class="btn del" data-a="clear">Clear all data</button></div>`;
+ `<div class="row"><button class="btn" data-a="backup">Download backup</button><label class="btn">Restore from file<input type="file" accept=".json" data-f="restore" hidden></label><button class="btn del" data-a="clear">Clear all data</button></div><p class="sub">Your data lives in this browser. Back it up regularly.</p>`;
 
 const A={
  newClass(){const n=prompt('Class name');if(n&&n.trim()){if(!S.addClass(n.trim()))alert('All 99 class codes are used.');App.render()}},
  addStudent(d){const n=prompt('Student name');if(n&&n.trim()){if(!S.addStudent(S.cls(d.id),n.trim()))alert('This class already has 99 students.');App.render()}},
  delClass(d){if(confirm('Delete this class and its students?')){const D=S.data();D.classes=D.classes.filter(c=>c.id!==d.id);S.save();location.hash='#/classes'}},
  delStudent(d){const c=S.cls(d.id);c.students=c.students.filter(s=>s.id!==d.s);S.save();App.render()},
- newQuiz(){location.hash='#/quiz/'+S.addQuiz().id},
+ newQuiz(){location.hash='#/quiz/'+S.addQuiz().id+'/edit'},
  delQuiz(d){if(confirm('Delete this quiz?')){const D=S.data();D.quizzes=D.quizzes.filter(q=>q.id!==d.id);S.save();location.hash='#/quizzes'}},
  addSec(d){S.quiz(d.id).sections.push({type:'mcq',count:10,opts:4});S.save();App.render()},
  delSec(d){S.quiz(d.id).sections.splice(+d.i,1);S.save();App.render()},

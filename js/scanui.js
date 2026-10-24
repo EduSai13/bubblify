@@ -43,7 +43,8 @@ async function start(){
  $('[data-a=scanCam]').textContent='Stop camera';say('Looking for the four corner squares...');
 }
 function stop(){clearInterval(timer);timer=null;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}}
-addEventListener('hashchange',()=>{if(!location.hash.startsWith('#/scan'))stop()});
+addEventListener('hashchange',()=>{if(!/\/scan$/.test(location.hash))stop()});
+V.setScan=id=>{if(qid!==id){stop();qid=id}};
 
 V.R.scan=()=>{
  const qs=S.data().quizzes,q=S.quiz(qid)||qs[0];qid=q?q.id:'';setTimeout(renderSess,0);
@@ -54,8 +55,8 @@ V.R.scan=()=>{
  if(lay.pages.length>1)w.push('This quiz needs more than one page. Scanning supports single-page sheets for now.');
  if(o.per===2)w.push('2 sheets per paper: cut the sheets apart on the dashed line before scanning.');
  return h+(w.length?`<div class="note">${w.join('<br>')}</div>`:'')+
- `<div class="row"><select data-r="scanquiz" aria-label="Quiz">${qs.map(x=>`<option value="${x.id}"${x.id===q.id?' selected':''}>${esc(QList.label(x))}</option>`).join('')}</select><label class="f row"><input type="checkbox" id="scauto" checked> Auto-capture</label></div>
- <div class="cam"><video id="scvid" playsinline muted></video><canvas id="scov"></canvas></div><p id="scstat" class="sub">Camera is off.</p>
+ `<div class="row"><label class="f row"><input type="checkbox" id="scauto" checked> Auto-capture</label></div>
+ <div class="cam"><video id="scvid" playsinline muted></video><canvas id="scov"></canvas></div><p id="scstat" class="sub">Camera is off. Hold the sheet upright with all four corner squares in view.</p>
  <div class="row"><button class="btn pri" data-a="scanCam">Start camera</button><button class="btn" data-a="scanNow">Capture now</button><label class="btn">Upload photos<input type="file" accept="image/*" multiple hidden data-r="scanfile"></label></div>
  <h2>This session</h2><div id="scsess"></div>`;
 };

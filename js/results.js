@@ -2,7 +2,7 @@
 (()=>{
 const S=Store,uid=()=>Math.random().toString(36).slice(2,8);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const head=(t,s)=>`<h1>${t}</h1><p class="sub">${s}</p>`;
+const head=t=>`<h1>${t}</h1>`;
 const pct=(a,b)=>b?Math.round(a/b*1000)/10:0,f1=x=>Math.round(x*10)/10;
 let tab='overview',cf='';const cn=c=>(S.data().classes.find(x=>x.code===c)||{name:'Class '+c}).name;
 const keyed=q=>Sheet.items(q).filter(i=>q.key[i.no]);
@@ -32,23 +32,23 @@ V.R.results=id=>{
  }else{
   o+=`<div class="tbl"><table><tr><th>ID</th><th>Name</th><th>Score</th><th>%</th><th></th></tr>${[...ps].sort((x,y)=>String(x.sid).localeCompare(y.sid)).map(p=>{const s=score(q,p);return `<tr><td class="id">${esc(p.sid)||'-'}</td><td>${esc(who(p.sid)||'Unknown')}</td><td>${s.r}/${s.t}</td><td>${s.p}%</td><td><a class="btn" href="#/paper/${q.id}/${p.id}">Review</a></td></tr>`}).join('')}</table></div>`;
  }
- return h+`<div class="row"><a class="btn" href="#/results">All results</a><button class="btn pri" data-a="addPaper" data-id="${q.id}">Add paper</button><button class="btn" data-a="csv" data-id="${q.id}">Export CSV</button>${cls.length>1?`<select data-r="cf" aria-label="Class filter"><option value="">All classes</option>${cls.map(c=>`<option value="${c}"${c===cfv?' selected':''}>${esc(cn(c))}</option>`).join('')}</select>`:''}</div><div class="row">${T('overview','Overview')}${T('item','By item')}${T('student','By student')}</div>`+o;
+ return h+`<div class="row"><button class="btn pri" data-a="addPaper" data-id="${q.id}">Add paper</button><button class="btn" data-a="csv" data-id="${q.id}">Export CSV</button>${cls.length>1?`<select data-r="cf" aria-label="Class filter"><option value="">All classes</option>${cls.map(c=>`<option value="${c}"${c===cfv?' selected':''}>${esc(cn(c))}</option>`).join('')}</select>`:''}</div><div class="row">${T('overview','Overview')}${T('item','By item')}${T('student','By student')}</div>`+o;
 };
 
 V.R.paper=(qid,pid)=>{
  const q=S.quiz(qid),p=q&&(q.papers||[]).find(x=>x.id===pid);if(!p)return'<p>Paper not found.</p>';
  const s=score(q,p),nm=who(p.sid);
  const it=i=>{const k=q.key[i.no];return `<div class="it${p.multi&&p.multi[i.no]?' multi':''}"><b>${i.no}</b>${Array.from({length:i.opts},(_,j)=>{const l=Sheet.lab(i.tf,j),on=p.answers[i.no]===l;return `<button class="o${on?(k?(l===k?' ok':' bad'):' on'):''}${k===l?' key':''}" data-a="ans" data-q="${q.id}" data-id="${p.id}" data-n="${i.no}" data-l="${l}">${l}</button>`}).join('')}</div>`};
- return `<a href="#/results/${q.id}">Back to results</a>`+head(`${s.r} / ${s.t} = ${s.p}%`,esc(nm||(p.sid?'ID not in roster':'No ID yet')))+(p.crop?`<img class="crop" alt="Handwritten name" src="${p.crop}">`:'')+
+ return `<a href="#/quiz/${q.id}/results">Back to results</a>`+head(`${s.r} / ${s.t} = ${s.p}%`,esc(nm||(p.sid?'ID not in roster':'No ID yet')))+(p.crop?`<img class="crop" alt="Handwritten name" src="${p.crop}">`:'')+
  `<div class="row"><label>Student ID <input data-p="sid" data-q="${q.id}" data-id="${p.id}" value="${esc(p.sid)}" placeholder="XX-XX" size="6"></label><button class="btn del" data-a="delPaper" data-q="${q.id}" data-id="${p.id}">Delete paper</button></div>
- <p class="sub">Click a bubble to change an answer. Green = correct, red = wrong, thick ring = the key, yellow row = more than one bubble was marked.</p><div class="items">${Sheet.items(q).map(it).join('')}</div>`;
+ <p class="sub">Tap a bubble to change it. Green correct, red wrong, ring = key, yellow = multiple marks.</p><div class="items">${Sheet.items(q).map(it).join('')}</div>`;
 };
 
 Object.assign(V.A,{
  tab:d=>{tab=d.t;App.render()},
  addPaper:d=>{const q=S.quiz(d.id),p={id:uid(),sid:'',answers:{},at:Date.now()};(q.papers=q.papers||[]).push(p);S.save();location.hash=`#/paper/${q.id}/${p.id}`},
  ans:d=>{const p=S.quiz(d.q).papers.find(x=>x.id===d.id);if(p.answers[d.n]===d.l)delete p.answers[d.n];else p.answers[d.n]=d.l;S.save();const y=scrollY;App.render();scrollTo(0,y)},
- delPaper:d=>{if(!confirm('Delete this paper?'))return;const q=S.quiz(d.q);q.papers=q.papers.filter(x=>x.id!==d.id);S.save();location.hash='#/results/'+q.id},
+ delPaper:d=>{if(!confirm('Delete this paper?'))return;const q=S.quiz(d.q);q.papers=q.papers.filter(x=>x.id!==d.id);S.save();location.hash='#/quiz/'+q.id+'/results'},
  csv:d=>{const q=S.quiz(d.id),its=Sheet.items(q),rows=[['ID','Name','Score','Total','Percent',...its.map(i=>'Q'+i.no)],['','','','','Key',...its.map(i=>q.key[i.no]||'')]];
   (q.papers||[]).forEach(p=>{const s=score(q,p);rows.push([p.sid,who(p.sid)||'',s.r,s.t,s.p,...its.map(i=>p.answers[i.no]||'')])});
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\r\n')],{type:'text/csv'}));a.download=q.name.replace(/\W+/g,'_')+'.csv';a.click()},
@@ -57,7 +57,7 @@ Object.assign(V.A,{
   const q=S.addQuiz(),L='ABCD';q.name='Sample quiz';q.classId=c.id;q.papers=[];
   for(let i=1;i<=10;i++)q.key[i]=L[Math.random()*4|0];
   c.students.forEach(s=>{const a={};for(let i=1;i<=10;i++)a[i]=Math.random()<.6?q.key[i]:L[Math.random()*4|0];q.papers.push({id:uid(),sid:c.code+'-'+s.no,answers:a,at:Date.now()})});
-  S.save();location.hash='#/results/'+q.id}
+  S.save();location.hash='#/quiz/'+q.id+'/results'}
 });
 
 const prev=V.change;

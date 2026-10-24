@@ -3,7 +3,7 @@ const App={
  render(){
   const [p,...a]=location.hash.replace(/^#\/?/,'').split('/'),name=V.R[p]?p:'home';
   document.getElementById('view').innerHTML=V.R[name](...a);
-  const on={class:'classes',quiz:'quizzes',sheet:'quizzes',paper:'results',home:''}[name]??name;
+  const on={class:'classes',student:'classes',quiz:'quizzes',sheet:'quizzes',paper:'quizzes',home:''}[name]??name;
   document.querySelectorAll('nav a').forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#/'+on));
   scrollTo(0,0);
  }
