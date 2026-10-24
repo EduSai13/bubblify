@@ -3,7 +3,7 @@
 (()=>{
 const S=Store,SCOPE='https://www.googleapis.com/auth/drive.appdata email',FN='bubblify-data.json',K='bubblify.sync',API='https://www.googleapis.com';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const meta=()=>Object.assign({auto:true},JSON.parse(localStorage.getItem(K)||'{}'));
+const meta=()=>{const m=Object.assign({auto:true},JSON.parse(localStorage.getItem(K)||'{}'));if(window.BUBBLIFY_CLIENT_ID)m.cid=window.BUBBLIFY_CLIENT_ID;return m};
 const keep=m=>localStorage.setItem(K,JSON.stringify(m));
 let tok='',exp=0,gsi=null,tc=null,tcId='',pend=null,busy=false,msg='',timer=0;
 const tokOK=()=>tok&&Date.now()<exp-60000;
@@ -87,18 +87,18 @@ addEventListener('bubblify:save',()=>{paint();const m=meta();if(!m.on||!m.auto||
 // ---- UI ----
 const section=()=>{const m=meta();
  return `<h2>Google Drive sync</h2><div class="panel">
- <label class="f"><span>Google client ID</span><input data-r="cid" value="${esc(m.cid)}" placeholder="xxxx.apps.googleusercontent.com"></label>
+ ${window.BUBBLIFY_CLIENT_ID?'':`<label class="f"><span>Google client ID</span><input data-r="cid" value="${esc(m.cid)}" placeholder="xxxx.apps.googleusercontent.com"></label>
  <details><summary>How to get a client ID</summary><ol>
  <li>Open console.cloud.google.com and create a project.</li>
  <li>APIs &amp; Services, Library: enable "Google Drive API".</li>
  <li>OAuth consent screen: choose External, fill in the basics, and publish it (or add yourself as a test user).</li>
  <li>Credentials, Create credentials, OAuth client ID, type Web application.</li>
  <li>Authorized JavaScript origins: your site (like https://yourname.github.io) and http://localhost:8000 for testing.</li>
- <li>Copy the Client ID and paste it above.</li></ol></details>
+ <li>Copy the Client ID and paste it above.</li></ol></details>`}
  <div class="row"><button class="btn pri" data-a="syncNow">${m.on?'Sync now':'Connect and sync'}</button>${m.on?'<button class="btn del" data-a="syncOff">Disconnect</button>':''}</div>
  <label class="f row"><input type="checkbox" data-r="syncauto"${m.auto?' checked':''}> Sync automatically after changes</label>
  <p class="sub" id="syncstat">${esc(text())}</p></div>`};
-const st=V.R.settings;V.R.settings=()=>st()+section();
+const st=V.R.settings;V.R.settings=()=>st()+section()+'<p class="sub"><a href="privacy.html">Privacy policy</a> · <a href="terms.html">Terms of service</a></p>';
 const home=V.R.home;V.R.home=()=>home().replace('Home</h1>',()=>'Home</h1>'+(chip()?`<button class="btn" id="synchip" data-a="syncNow">${chip()}</button>`:''));
 Object.assign(V.A,{
  syncNow:()=>sync(false),
