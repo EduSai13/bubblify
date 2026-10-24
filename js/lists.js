@@ -27,10 +27,10 @@ const body=m=>{
  return G.map(x=>(x.g?`<h2>${esc(x.g)}</h2>`:'')+`<div class="grid">${x.a.map(q=>card(q,m)).join('')}</div>`).join('');
 };
 const bar=()=>{const o=(v,t,c)=>`<option value="${esc(v)}"${v===c?' selected':''}>${esc(t)}</option>`;
- return `<div class="fbar"><input type="search" data-l="q" placeholder="Search quizzes" value="${esc(f.q)}" aria-label="Search">
+ return `<div class="fbar"><input type="search" data-l="q" placeholder="Search quizzes" value="${esc(f.q)}" aria-label="Search"><details class="fdet"${f.tag||f.cls||f.sort!=='new'?' open':''}><summary class="btn ic" title="Filters" aria-label="Filters">${Icons.i('filter')}</summary><div class="fsel">
  <select data-l="tag" aria-label="Tag">${o('','All tags',f.tag)}${allTags().map(t=>o(t,t,f.tag)).join('')}</select>
  <select data-l="cls" aria-label="Class">${o('','All classes',f.cls)}${S.data().classes.map(c=>o(c.id,c.name,f.cls)).join('')}</select>
- <select data-l="sort" aria-label="Sort">${o('new','Newest first',f.sort)}${o('old','Oldest first',f.sort)}${o('title','Title A to Z',f.sort)}${o('cls','Group by class',f.sort)}</select></div>`};
+ <select data-l="sort" aria-label="Sort">${o('new','Newest first',f.sort)}${o('old','Oldest first',f.sort)}${o('title','Title A to Z',f.sort)}${o('cls','Group by class',f.sort)}</select></div></details></div>`};
 
 V.R.quizzes=()=>`<div class="row"><h1 style="margin:0;flex:1">Quizzes</h1><button class="btn pri" data-a="newQuiz">New quiz</button></div>${bar()}<div id="qlist" data-m="quizzes">${body('quizzes')}</div>`;
 const detail=V.R.results;

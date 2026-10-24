@@ -49,7 +49,7 @@ const text=()=>{const m=meta();if(!m.cid)return'Add a Google client ID to turn o
  const st=busy?'syncing...':!m.on?'not connected':isDirty()?'changes not synced yet':'up to date';
  return[msg,m.email,st,m.lastAt?'last sync '+new Date(m.lastAt).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):''].filter(Boolean).join(' · ')};
 const chip=()=>meta().cid?(busy?'Syncing...':isDirty()||!meta().on?'Sync now':'Synced'):'';
-function paint(){const e=document.getElementById('syncstat'),c=document.getElementById('synchip');if(e)e.textContent=text();if(c)c.textContent=chip()}
+function paint(){const e=document.getElementById('syncstat'),c=document.getElementById('synchip');if(e)e.textContent=text();if(c)c.innerHTML=Icons.btn('sync',chip(),1)}
 
 async function sync(auto){
  if(busy)return;const m=meta();
@@ -99,7 +99,7 @@ const section=()=>{const m=meta();
  <label class="f row"><input type="checkbox" data-r="syncauto"${m.auto?' checked':''}> Sync automatically after changes</label>
  <p class="sub" id="syncstat">${esc(text())}</p></div>`};
 const st=V.R.settings;V.R.settings=()=>st()+section()+'<p class="sub"><a href="privacy.html">Privacy policy</a> · <a href="terms.html">Terms of service</a></p>';
-const home=V.R.home;V.R.home=()=>home().replace('Home</h1>',()=>'Home</h1>'+(chip()?`<button class="btn" id="synchip" data-a="syncNow">${chip()}</button>`:''));
+const home=V.R.home;V.R.home=()=>home().replace('Home</h1>',()=>'Home</h1>'+(chip()?`<button class="btn" id="synchip" data-a="syncNow">${Icons.btn('sync',chip(),1)}</button>`:''));
 Object.assign(V.A,{
  syncNow:()=>sync(false),
  syncOff:()=>{if(!confirm('Disconnect from Google Drive? The cloud copy stays in Drive.'))return;

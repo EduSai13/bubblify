@@ -39,7 +39,7 @@ V.R.paper=(qid,pid)=>{
  const q=S.quiz(qid),p=q&&(q.papers||[]).find(x=>x.id===pid);if(!p)return'<p>Paper not found.</p>';
  const s=score(q,p),nm=who(p.sid);
  const it=i=>{const k=q.key[i.no];return `<div class="it${p.multi&&p.multi[i.no]?' multi':''}"><b>${i.no}</b>${Array.from({length:i.opts},(_,j)=>{const l=Sheet.lab(i.tf,j),on=p.answers[i.no]===l;return `<button class="o${on?(k?(l===k?' ok':' bad'):' on'):''}${k===l?' key':''}" data-a="ans" data-q="${q.id}" data-id="${p.id}" data-n="${i.no}" data-l="${l}">${l}</button>`}).join('')}</div>`};
- return `<a href="#/quiz/${q.id}/results">Back to results</a>`+head(`${s.r} / ${s.t} = ${s.p}%`,esc(nm||(p.sid?'ID not in roster':'No ID yet')))+(p.crop?`<img class="crop" alt="Handwritten name" src="${p.crop}">`:'')+
+ return `<div class="top"><a class="back" href="#/quiz/${q.id}/results">‹</a><h1>${s.r} / ${s.t} = ${s.p}%</h1></div><div class="meta">${esc(nm||(p.sid?'ID not in roster':'No ID yet'))}</div>`+(p.crop?`<img class="crop" alt="Handwritten name" src="${p.crop}">`:'')+
  `<div class="row"><label>Student ID <input data-p="sid" data-q="${q.id}" data-id="${p.id}" value="${esc(p.sid)}" placeholder="XX-XX" size="6"></label><button class="btn del" data-a="delPaper" data-q="${q.id}" data-id="${p.id}">Delete paper</button></div>
  <p class="sub">Tap a bubble to change it. Green correct, red wrong, ring = key, yellow = multiple marks.</p><div class="items">${Sheet.items(q).map(it).join('')}</div>`;
 };

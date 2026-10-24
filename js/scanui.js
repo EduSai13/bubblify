@@ -40,7 +40,7 @@ async function start(){
  try{stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1920},height:{ideal:1080},advanced:[{focusMode:'continuous'}]},audio:false})}
  catch(e){say('Camera unavailable ('+(e.name||'error')+'). It needs HTTPS or localhost; "Upload photos" works anywhere.');return}
  const v=$('#scvid');v.srcObject=stream;await v.play();timer=setInterval(tick,300);armed=true;
- $('[data-a=scanCam]').textContent='Stop camera';say('Looking for the four corner squares...');
+ $('[data-a=scanCam]').innerHTML=Icons.btn('stop','Stop',1);say('Looking for the four corner squares...');
 }
 function stop(){clearInterval(timer);timer=null;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}}
 addEventListener('hashchange',()=>{if(!/\/scan$/.test(location.hash))stop()});

@@ -9,7 +9,7 @@ const strip=h=>h.replace(/^<a href="[^"]*">[^<]*<\/a>/,'').replace(/<h1>.*?<\/h1
 const hub=q=>{
  const it=Sheet.items(q),k=it.filter(i=>q.key[i.no]).length,ps=q.papers||[],o=Sheet.opts(q);
  const mean=ps.length?Math.round(ps.reduce((a,p)=>a+sc(q,p).v,0)/ps.length):0;
- const c=(s,t,d)=>`<a class="card hub" href="#/quiz/${q.id}/${s}"><b>${t}</b>${d}</a>`;
+ const c=(s,t,d)=>`<a class="card hub" href="#/quiz/${q.id}/${s}">${Icons.i(s,28)}<span><b>${t}</b><small>${d}</small></span></a>`;
  return `<div class="grid hubs">${c('edit','Edit quiz',`${it.length} items, key ${k}/${it.length}`)}${c('sheets','Prepare sheets',`${o.paper}, ${o.copies} ${o.copies>1?'copies':'copy'}`)}${c('scan','Scan papers','Camera or photos')}${c('results','View results',ps.length?`${ps.length} papers, mean ${mean}%`:'No papers yet')}</div>
  <div class="row"><button class="btn" data-a="dupQuiz" data-id="${q.id}">Duplicate quiz</button></div>`;
 };
@@ -23,7 +23,7 @@ V.R.quiz=(id,step)=>{
  else if(step==='results')b=strip(RS(id));
  else b=hub(q);
  const d=QList.first(q);
- return `<a href="#/quizzes">‹ Quizzes</a><h1>${step?`<a href="#/quiz/${q.id}" class="plain">${esc(q.name)}</a>`:esc(q.name)}</h1>
+ return `<div class="top"><a class="back" href="#/quizzes">‹</a><h1>${step?`<a href="#/quiz/${q.id}" class="plain">${esc(q.name)}</a>`:esc(q.name)}</h1></div>
  <div class="meta">${esc(QList.cname(q))||'No class'}${d?' · first scanned '+QList.fmt(d):''}</div>
  ${step?`<div class="steps">${STEPS.map(([s,t])=>`<a class="tg${s===step?' on':''}" href="#/quiz/${q.id}/${s}">${t}</a>`).join('')}</div>`:''}${b}`;
 };
@@ -44,7 +44,7 @@ const hist=(c,s)=>{const sid=c.code+'-'+s.no,r=[];
 const avg=h=>h.length?Math.round(h.reduce((a,x)=>a+x.s.v,0)/h.length):'-';
 V.R.class=id=>{
  const c=S.cls(id);if(!c)return'<p>Class not found.</p>';
- return `<a href="#/classes">‹ Classes</a><h1>${esc(c.name)}</h1><div class="meta">Class code ${c.code}</div>
+ return `<div class="top"><a class="back" href="#/classes">‹</a><h1>${esc(c.name)}</h1></div><div class="meta">Class code ${c.code}</div>
  <div class="row"><button class="btn pri" data-a="addStudent" data-id="${c.id}">Add student</button><button class="btn del" data-a="delClass" data-id="${c.id}">Delete class</button></div>
  <div class="tbl"><table><tr><th>ID</th><th>Name</th><th>Quizzes</th><th>Avg %</th><th></th></tr>${c.students.map(s=>{const h=hist(c,s);
   return `<tr><td class="id">${c.code}-${s.no}</td><td><a href="#/student/${c.id}/${s.id}">${esc(s.name)}</a></td><td>${h.length}</td><td>${avg(h)}</td><td><button class="btn del" data-a="delStudent" data-id="${c.id}" data-s="${s.id}">Remove</button></td></tr>`}).join('')}</table></div>`;
@@ -52,7 +52,7 @@ V.R.class=id=>{
 V.R.student=(cid,sid)=>{
  const c=S.cls(cid),s=c&&c.students.find(x=>x.id===sid);if(!s)return'<p>Student not found.</p>';
  const h=hist(c,s);
- return `<a href="#/class/${c.id}">‹ ${esc(c.name)}</a><h1>${esc(s.name)}</h1><div class="meta">${c.code}-${s.no} · ${h.length} quizzes · average ${avg(h)}%</div>
+ return `<div class="top"><a class="back" href="#/class/${c.id}">‹</a><h1>${esc(s.name)}</h1></div><div class="meta">${c.code}-${s.no} · ${h.length} quizzes · average ${avg(h)}%</div>
  <div class="tbl"><table><tr><th>Quiz</th><th>Date</th><th>Score</th><th></th></tr>${h.map(x=>`<tr><td>${esc(x.q.name)}</td><td>${QList.fmt(x.at)}</td><td>${x.s.r}/${x.s.t} (${Math.round(x.s.v)}%)</td><td><a class="btn" href="#/paper/${x.q.id}/${x.p.id}">Review</a></td></tr>`).join('')||'<tr><td colspan="4">No scanned papers yet.</td></tr>'}</table></div>`;
 };
 })();
