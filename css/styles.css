@@ -142,3 +142,9 @@ th,td{padding:5px 8px}
  .steps .tg{flex-direction:column;gap:2px;font-size:12px;min-height:48px}
  input,select,textarea{min-height:40px}
 }
+/* sheet settings: keep the panel inside its column */
+.split{grid-template-columns:minmax(280px,340px) 1fr}
+.split>*{min-width:0}
+.split .panel{grid-template-columns:repeat(2,minmax(0,1fr))}
+.split .panel select,.split .panel input:not([type=checkbox]),.split .panel textarea{width:100%;min-width:0;padding:4px 6px}
+@media(max-width:700px){.split{grid-template-columns:1fr}}
