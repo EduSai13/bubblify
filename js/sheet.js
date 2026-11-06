@@ -12,6 +12,14 @@ const optsOf=s=>s.type==='tf'?2:s.opts;
 const lab=(tf,j)=>tf?'TF'[j]:L[j];
 const items=q=>{let n=0;const r=[];q.sections.forEach((s,si)=>{for(let i=0;i<s.count;i++)r.push({no:++n,si,opts:optsOf(s),tf:s.type==='tf'})});return r};
 const blocks=q=>{const b=[];items(q).forEach(x=>{let t=b[b.length-1];if(!t||t[0].si!==x.si||t.length===5){t=[];b.push(t)}t.push(x)});return b};
+const sectionLabel=(s,si)=>{
+ const part=`Part ${R[si]||si+1}.`;
+ const title=(s.title||'').trim();
+ const kind=s.type==='tf'?'True or False':'Multiple choice';
+ return title?`${part} ${title}`:`${part} ${kind}`;
+};
+
+
 
 function layout(q){
  const o=opts(q),{W,H}=dims(o),S=q.sections,mo=Math.max(2,...S.map(optsOf)),narrow=W<130;
@@ -31,7 +39,7 @@ function layout(q){
   let left=s.count,first=true;
   while(left>0){
    const m=Math.min(k,left);pages[pg].cols=Math.max(pages[pg].cols,col+1);
-   if(first)pages[pg].cells.push({h:1,col,y:y0,text:`${R[si]||si+1}. ${s.type==='tf'?'True or False':'Multiple choice'}`});
+   if(first)pages[pg].cells.push({h:1,col,y:y0,text:sectionLabel(s,si)});
    for(let i=0;i<m;i++)pages[pg].cells.push({no:++n,col,opts:optsOf(s),tf:s.type==='tf',y:y0+(i+1)*P+Math.floor(i/5)*G(P)});
    first=false;left-=m;fresh=false;if(left>0)newCol();
   }

@@ -3,17 +3,33 @@
 const S=Store,$=s=>document.querySelector(s),pv=document.createElement('canvas');
 const uid=()=>Math.random().toString(36).slice(2,8);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-let qid=localStorage.getItem('bubblify.scanQuiz')||'',stream=null,timer=null,armed=true,stable=0,lost=0,last=null,hold=0,session=[];
+let qid=localStorage.getItem('bubblify.scanQuiz')||'',stream=null,timer=null,armed=true,stable=0,lost=0,last=null,hold=0,session=[],pending=null;
 const say=t=>{const e=$('#scstat');if(e)e.textContent=t};
 const who=sid=>{const[c,n]=String(sid||'').split('-'),cl=S.data().classes.find(x=>x.code===c),st=cl&&cl.students.find(s=>s.no===n);return st?st.name:''};
-const total=(q,p)=>{const k=Sheet.items(q).filter(i=>q.key[i.no]);return[k.filter(i=>p.answers[i.no]===q.key[i.no]).length,k.length]};
+const scoreOf=(q,p)=>{const k=Sheet.items(q).filter(i=>q.key[i.no]);return[k.filter(i=>p.answers[i.no]===q.key[i.no]).length,k.length]};
+const pagesOf=q=>Sheet.layout(q).pages.length;
 const renderSess=()=>{const e=$('#scsess');if(e)e.innerHTML=session.length?session.slice().reverse().map(s=>`<div><a href="#/paper/${s.q}/${s.p}">${esc(s.t)}</a></div>`).join(''):'<p class="sub">Nothing scanned yet.</p>'};
 
 function accept(r,q){
- const ps=q.papers=q.papers||[],old=r.idOk&&ps.find(p=>p.sid===r.sid),p=old||{id:uid()};
+ const ps=q.papers=q.papers||[],np=pagesOf(q);
+ if(np>1){
+  if(!pending||pending.qid!==q.id||pending.sid!==r.sid){
+   pending={qid:q.id,sid:r.sid,answers:{},multi:{},page:1,pages:np};
+  }
+  Object.assign(pending.answers,r.answers);
+  Object.assign(pending.multi,r.multi||{});
+  if(pending.page<np){
+   const done=pending.page;pending.page++;
+   say(`Sheet ${done} of ${np} captured for ${r.idOk?r.sid:'this paper'}. Now scan sheet ${pending.page} of ${np}.`);
+   armed=true;hold=Date.now()+1200;return;
+  }
+  r={sid:pending.sid,idOk:true,answers:pending.answers,multi:pending.multi,crop:r.crop};
+  pending=null;
+ }
+ const old=r.idOk&&ps.find(p=>p.sid===r.sid),p=old||{id:uid()};
  Object.assign(p,{sid:r.sid,answers:r.answers,multi:r.multi,crop:r.crop,at:Date.now()});if(!old)ps.push(p);
  try{S.save()}catch(e){p.crop=null;try{S.save()}catch(e2){say('Storage is full. Download a backup in Settings, then delete old papers.');return}}
- const[a,b]=total(q,p),cl=S.cls(q.classId),nm=who(r.sid),
+ const[a,b]=scoreOf(q,p),cl=S.cls(q.classId),nm=who(r.sid),
   t=`${r.idOk?r.sid+' '+(nm||'(not in roster)'):'ID not read, please review'}: ${a}/${b}${old?' (updated)':''}${cl&&r.idOk&&r.sid.slice(0,2)!==cl.code?' (different class code)':''}`;
  session=session.filter(s=>s.p!==p.id).concat({q:q.id,p:p.id,t});renderSess();say(t);hold=Date.now()+2500;navigator.vibrate&&navigator.vibrate(60);
 }
@@ -31,7 +47,7 @@ function tick(){
  const r=Scanner.quad(pv,q),ov=$('#scov');ov.width=w;ov.height=h;const x=ov.getContext('2d');
  if(r.q){
   lost=0;const mv=last?Math.max(...r.q.map((p,i)=>Math.hypot(p.x-last[i].x,p.y-last[i].y))):99;stable=mv<8?stable+1:0;last=r.q;
-  x.lineWidth=4;x.strokeStyle=stable>=3?'#C6D94C':'#fff';x.beginPath();r.q.forEach((p,i)=>i?x.lineTo(p.x,p.y):x.moveTo(p.x,p.y));x.closePath();x.stroke();
+  x.lineWidth=4;x.strokeStyle=stable>=3?'#6B7F6E':'#fff';x.beginPath();r.q.forEach((p,i)=>i?x.lineTo(p.x,p.y):x.moveTo(p.x,p.y));x.closePath();x.stroke();
   if(Date.now()>hold)say(armed?(stable>=3?'Hold still, capturing...':'Hold steady...'):'Remove this paper to scan the next one.');
   if(stable>=3&&armed&&$('#scauto').checked){armed=false;if(!capture(v))setTimeout(()=>armed=true,2000)}
  }else{stable=0;last=null;if(++lost>=6)armed=true;if(Date.now()>hold)say(r.dark?'Too dark, add more light.':'Looking for the four corner squares...')}
@@ -43,16 +59,16 @@ async function start(){
  $('[data-a=scanCam]').innerHTML=Icons.btn('stop','Stop',1);say('Looking for the four corner squares...');
 }
 function stop(){clearInterval(timer);timer=null;if(stream){stream.getTracks().forEach(t=>t.stop());stream=null}}
-addEventListener('hashchange',()=>{if(!/\/scan$/.test(location.hash))stop()});
-V.setScan=id=>{if(qid!==id){stop();qid=id}};
+addEventListener('hashchange',()=>{if(!/\/scan$/.test(location.hash)){stop();pending=null}});
+V.setScan=id=>{if(qid!==id){stop();pending=null;qid=id}};
 
 V.R.scan=()=>{
  const qs=S.data().quizzes,q=S.quiz(qid)||qs[0];qid=q?q.id:'';setTimeout(renderSess,0);
  const h=`<h1>Scan papers</h1><p class="sub">Show all four corner squares. Hold the sheet upright (title at the top) and flat.</p>`;
  if(!q)return h+'<p>Create a quiz and print its sheets first.</p>';
- const lay=Sheet.layout(q),o=Sheet.opts(q),w=[];
+ const lay=Sheet.layout(q),o=Sheet.opts(q),w=[],np=lay.pages.length;
  if(!Object.keys(q.key).length)w.push('Set the answer key first, or scores will show 0/0.');
- if(lay.pages.length>1)w.push('This quiz needs more than one page. Scanning supports single-page sheets for now.');
+ if(np>1)w.push(`This quiz has ${np} sheets per student. Scan them in order: sheet 1 first, then sheet 2.`);
  if(o.per>1)w.push('Several sheets per paper: cut them apart on the dashed lines before scanning.');
  return h+(w.length?`<div class="note">${w.join('<br>')}</div>`:'')+
  `<div class="row"><label class="f row"><input type="checkbox" id="scauto" checked> Auto-capture</label></div>
@@ -69,7 +85,7 @@ V.R.settings=()=>st1()+`<h2>Scanner</h2><label class="f"><span>Mark sensitivity<
 const prev=V.change;
 V.change=el=>{
  if(el.dataset.r==='sens'){localStorage.setItem('bubblify.sens',el.value);return}
- if(el.dataset.r==='scanquiz'){stop();qid=el.value;localStorage.setItem('bubblify.scanQuiz',qid);App.render();return}
+ if(el.dataset.r==='scanquiz'){stop();pending=null;qid=el.value;localStorage.setItem('bubblify.scanQuiz',qid);App.render();return}
  if(el.dataset.r==='scanfile'){
   [...el.files].reduce((p,f)=>p.then(()=>new Promise(res=>{const im=new Image();im.onload=()=>{capture(im);URL.revokeObjectURL(im.src);res()};im.onerror=res;im.src=URL.createObjectURL(f)})),Promise.resolve()).then(()=>{el.value=''});
   return}

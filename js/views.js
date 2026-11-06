@@ -19,11 +19,13 @@ R.class=id=>{const c=S.cls(id);if(!c)return'<p>Class not found.</p>';
  <table><tr><th>ID</th><th>Name</th><th></th></tr>${c.students.map(s=>`<tr><td class="id">${c.code}-${s.no}</td><td>${e(s.name)}</td><td><button class="btn del" data-a="delStudent" data-id="${c.id}" data-s="${s.id}">Remove</button></td></tr>`).join('')}</table>`};
 
 R.quiz=id=>{const q=S.quiz(id);if(!q)return'<p>Quiz not found.</p>';
- const sec=(s,i)=>`<div class="sec"><div class="row"><select data-f="type" data-id="${q.id}" data-i="${i}" aria-label="Item type">${opt('mcq',s.type,'Multiple choice')}${opt('tf',s.type,'True or False')}</select>
- <label>Items <input type="number" min="1" max="200" style="width:72px" data-f="count" data-id="${q.id}" data-i="${i}" value="${s.count}"></label>
- ${s.type==='mcq'?`<label>Options <select data-f="opts" data-id="${q.id}" data-i="${i}">${[2,3,4,5].map(n=>opt(n,s.opts,`${n} (${'ABCDE'.slice(0,n)})`)).join('')}</select></label>`:''}
- ${q.sections.length>1?`<button class="btn del" data-a="delSec" data-id="${q.id}" data-i="${i}">Remove section</button>`:''}</div></div>`;
- const it=x=>`<div class="it"><b>${x.no}</b>${Array.from({length:x.opts},(_,j)=>{const l=Sheet.lab(x.tf,j);return `<button class="o${q.key[x.no]===l?' on':''}" data-a="key" data-id="${q.id}" data-n="${x.no}" data-l="${l}">${l}</button>`}).join('')}</div>`;
+ const sec=(s,i)=>`<div class="sec"><div class="row"><input data-f="title" data-id="${q.id}" data-i="${i}" value="${e(s.title||'')}" placeholder="Section title (e.g. Reading Comprehension)" aria-label="Section title" style="flex:1;min-width:160px"></div>
+<div class="row"><select data-f="type" data-id="${q.id}" data-i="${i}" aria-label="Item type">${opt('mcq',s.type,'Multiple choice')}${opt('tf',s.type,'True or False')}</select>
+<label>Items <input type="number" min="1" max="200" style="width:72px" data-f="count" data-id="${q.id}" data-i="${i}" value="${s.count}"></label>
+${s.type==='mcq'?`<label>Options <select data-f="opts" data-id="${q.id}" data-i="${i}">${[2,3,4,5].map(n=>opt(n,s.opts,`${n} (${'ABCDE'.slice(0,n)})`)).join('')}</select></label>`:''}
+${q.sections.length>1?`<button class="btn del" data-a="delSec" data-id="${q.id}" data-i="${i}">Remove section</button>`:''}</div></div>`;
+
+const it=x=>`<div class="it"><b>${x.no}</b>${Array.from({length:x.opts},(_,j)=>{const l=Sheet.lab(x.tf,j);return `<button class="o${q.key[x.no]===l?' on':''}" data-a="key" data-id="${q.id}" data-n="${x.no}" data-l="${l}">${l}</button>`}).join('')}</div>`;
  return `<a href="#/quizzes">Back to quizzes</a>`+head('Edit quiz','Changes save automatically.')+
  `<div class="row"><input data-f="name" data-id="${q.id}" value="${e(q.name)}" aria-label="Quiz name"><select data-f="classId" data-id="${q.id}" aria-label="Class"><option value="">No class</option>${S.data().classes.map(c=>opt(c.id,q.classId,e(c.name))).join('')}</select><a class="btn pri" href="#/quiz/${q.id}/sheets">Answer sheets</a><button class="btn del" data-a="delQuiz" data-id="${q.id}">Delete</button></div>`+
  q.sections.map(sec).join('')+`<div class="row"><button class="btn" data-a="addSec" data-id="${q.id}">Add section</button></div><h2>Answer key</h2><div class="items">${Sheet.blocks(q).map(b=>`<div class="g5">${b.map(it).join('')}</div>`).join('')}</div>`};
@@ -53,8 +55,9 @@ function change(el){
  const q=S.quiz(el.dataset.id);if(!q)return;
  if(f==='name')q.name=el.value;
  else if(f==='classId')q.classId=el.value;
- else{const s=q.sections[+el.dataset.i];s[f]=f==='type'?el.value:Math.max(1,Math.min(200,+el.value||1))}
+ else{const s=q.sections[+el.dataset.i];if(f==='title')s.title=el.value;else s[f]=f==='type'?el.value:Math.max(1,Math.min(200,+el.value||1))}
  S.save();if(f!=='name')App.render();
 }
+
 return{R,A,change};
 })();

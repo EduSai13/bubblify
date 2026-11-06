@@ -55,4 +55,5 @@ V.R.student=(cid,sid)=>{
  return `<div class="top"><a class="back" href="#/class/${c.id}">‹</a><h1>${esc(s.name)}</h1></div><div class="meta">${c.code}-${s.no} · ${h.length} quizzes · average ${avg(h)}%</div>
  <div class="tbl"><table><tr><th>Quiz</th><th>Date</th><th>Score</th><th></th></tr>${h.map(x=>`<tr><td>${esc(x.q.name)}</td><td>${QList.fmt(x.at)}</td><td>${x.s.r}/${x.s.t} (${Math.round(x.s.v)}%)</td><td><a class="btn" href="#/paper/${x.q.id}/${x.p.id}">Review</a></td></tr>`).join('')||'<tr><td colspan="4">No scanned papers yet.</td></tr>'}</table></div>`;
 };
+
 })();
