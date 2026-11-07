@@ -10,12 +10,19 @@ const who=sid=>{const[c,n]=String(sid||'').split('-'),cl=S.data().classes.find(x
 const score=(q,p)=>{const k=keyed(q),r=k.filter(i=>p.answers[i.no]===q.key[i.no]).length;return{r,t:k.length,p:pct(r,k.length)}};
 const stats=a=>{const n=a.length,m=a.reduce((x,y)=>x+y,0)/n,s=[...a].sort((x,y)=>x-y),sd=Math.sqrt(a.reduce((x,y)=>x+(y-m)**2,0)/n);
  return{n,m,sd,med:n%2?s[(n-1)/2]:(s[n/2-1]+s[n/2])/2,min:s[0],max:s[n-1],sk:sd?a.reduce((x,y)=>x+((y-m)/sd)**3,0)/n:0,pass:pct(a.filter(x=>x>=60).length,n)}};
+// Mean % correct for each Part (keyed items only).
+const byPart=(q,ps)=>{
+ if(q.sections.length<2)return'';
+ const rows=q.sections.map((s,si)=>{const ks=keyed(q).filter(i=>i.si===si);if(!ks.length)return'';
+  const m=ps.reduce((a,p)=>a+ks.filter(i=>p.answers[i.no]===q.key[i.no]).length/ks.length*100,0)/ps.length;
+  return `<div class="pr p${si%6}"><span class="pbadge">${Sheet.partNo(si)}</span><span class="ptitle"><b>${esc(Sheet.partName(s))}</b><small>${ks.length} items</small></span><span class="pbar wide"><i style="width:${m}%"></i></span><b class="pv2">${f1(m)}%</b></div>`}).join('');
+ return rows?`<h2>By part</h2><div class="bypart">${rows}</div>`:''};
 const itemStats=(q,ps)=>{
  const sc=ps.map(p=>({p,s:score(q,p).r})).sort((a,b)=>b.s-a.s),g=Math.max(1,Math.round(ps.length*.27)),up=sc.slice(0,g),lo=sc.slice(-g);
  return keyed(q).map(i=>{const k=q.key[i.no],dist={};let ok=0,blank=0;
   ps.forEach(p=>{const a=p.answers[i.no];if(!a)blank++;else dist[a]=(dist[a]||0)+1;if(a===k)ok++});
   const rate=l=>l.filter(x=>x.p.answers[i.no]===k).length/l.length;
-  return{no:i.no,k,p:ok/ps.length,blank,dist,d:ps.length>=4?rate(up)-rate(lo):null}})};
+  return{no:i.no,si:i.si,k,p:ok/ps.length,blank,dist,d:ps.length>=4?rate(up)-rate(lo):null}})};
 
 V.R.results=id=>{
  const q=S.quiz(id)||S.data().quizzes[0],h=q?head(esc(q.name),'Results and item analysis.'):head('Results','');
@@ -26,28 +33,33 @@ V.R.results=id=>{
  if(!ps.length)o+='<p>No papers yet. Add one manually, or scan once the scanner is built.</p>';
  else if(tab==='overview'){
   const st=stats(sc),bk=Array(10).fill(0);sc.forEach(x=>bk[Math.min(9,x/10|0)]++);const mx=Math.max(...bk),card=(l,v)=>`<div class="card"><b>${v}</b>${l}</div>`;
-  o+=`<div class="stats">${card('Papers',st.n)}${card('Mean %',f1(st.m))}${card('Median %',f1(st.med))}${card('Std dev',f1(st.sd))}${card('Range',f1(st.min)+'-'+f1(st.max))}${card('Skewness',f1(st.sk))}${card('Pass (60%+)',st.pass+'%')}</div><h2>Score distribution</h2><div class="dist">${bk.map((c,i)=>`<div class="bar"><i style="height:${c/mx*100}%${c?'':';border:0'}"></i><em>${i*10}<br>${c}</em></div>`).join('')}</div>`;
+  o+=`<div class="stats">${card('Papers',st.n)}${card('Mean %',f1(st.m))}${card('Median %',f1(st.med))}${card('Std dev',f1(st.sd))}${card('Range',f1(st.min)+'-'+f1(st.max))}${card('Skewness',f1(st.sk))}${card('Pass (60%+)',st.pass+'%')}</div>${byPart(q,ps)}<h2>Score distribution</h2><div class="dist">${bk.map((c,i)=>`<div class="bar"><i style="height:${c/mx*100}%${c?'':';border:0'}"></i><em>${i*10}<br>${c}</em></div>`).join('')}</div>`;
  }else if(tab==='item'){
-  o+=`<div class="tbl"><table><tr><th>#</th><th>Key</th><th>% correct</th><th>Discrim.</th><th>Blank</th><th>Answers</th></tr>${itemStats(q,ps).map(i=>`<tr><td>${i.no}</td><td>${i.k}</td><td>${f1(i.p*100)}%</td><td class="${i.d!==null&&i.d<.1?'poor':''}">${i.d===null?'-':Math.round(i.d*100)/100}</td><td>${i.blank}</td><td>${Object.entries(i.dist).sort().map(([l,c])=>`<span class="chip${l===i.k?' on':''}">${l}:${c}</span>`).join('')}</td></tr>`).join('')}</table></div><p class="sub">Discrimination compares the top and bottom 27% of papers (needs 4+ papers): 0.30+ good, 0.10 to 0.29 fair, below 0.10 poor. Difficulty near 50% separates students best.</p>`;
+  o+=`<div class="tbl"><table><tr><th>#</th><th>Key</th><th>% correct</th><th>Discrim.</th><th>Blank</th><th>Answers</th></tr>${itemStats(q,ps).map((i,x,arr)=>(q.sections.length>1&&(x===0||arr[x-1].si!==i.si)?`<tr class="grp p${i.si%6}"><td colspan="6">Part ${Sheet.partNo(i.si)}. ${esc(Sheet.partName(q.sections[i.si]))}</td></tr>`:'')+`<tr><td>${i.no}</td><td>${i.k}</td><td>${f1(i.p*100)}%</td><td class="${i.d!==null&&i.d<.1?'poor':''}">${i.d===null?'-':Math.round(i.d*100)/100}</td><td>${i.blank}</td><td>${Object.entries(i.dist).sort().map(([l,c])=>`<span class="chip${l===i.k?' on':''}">${l}:${c}</span>`).join('')}</td></tr>`).join('')}</table></div><p class="sub">Discrimination compares the top and bottom 27% of papers (needs 4+ papers): 0.30+ good, 0.10 to 0.29 fair, below 0.10 poor. Difficulty near 50% separates students best.</p>`;
  }else{
-  o+=`<div class="tbl"><table><tr><th>ID</th><th>Name</th><th>Score</th><th>%</th><th></th></tr>${[...ps].sort((x,y)=>String(x.sid).localeCompare(y.sid)).map(p=>{const s=score(q,p);return `<tr><td class="id">${esc(p.sid)||'-'}</td><td>${esc(who(p.sid)||'Unknown')}</td><td>${s.r}/${s.t}</td><td>${s.p}%</td><td><a class="btn" href="#/paper/${q.id}/${p.id}">Review</a></td></tr>`}).join('')}</table></div>`;
+  o+=`<div class="tbl"><table><tr><th>ID</th><th>Name</th><th>Score</th><th>%</th><th></th></tr>${[...ps].sort((x,y)=>String(x.sid).localeCompare(y.sid)).map(p=>{const s=score(q,p);return `<tr><td class="id">${esc(p.sid)||'-'}</td><td>${esc(who(p.sid)||'Unknown')}${Sheet.missing(q,p).length?` <span class="chip warn">Missing sheet ${Sheet.missing(q,p).join(', ')}</span>`:''}</td><td>${s.r}/${s.t}</td><td>${s.p}%</td><td><a class="btn" href="#/paper/${q.id}/${p.id}">Review</a></td></tr>`}).join('')}</table></div>`;
  }
  return h+`<div class="row"><button class="btn pri" data-a="addPaper" data-id="${q.id}">Add paper</button><button class="btn" data-a="csv" data-id="${q.id}">Export CSV</button>${cls.length>1?`<select data-r="cf" aria-label="Class filter"><option value="">All classes</option>${cls.map(c=>`<option value="${c}"${c===cfv?' selected':''}>${esc(cn(c))}</option>`).join('')}</select>`:''}</div><div class="row">${T('overview','Overview')}${T('item','By item')}${T('student','By student')}</div>`+o;
 };
 
 V.R.paper=(qid,pid)=>{
  const q=S.quiz(qid),p=q&&(q.papers||[]).find(x=>x.id===pid);if(!p)return'<p>Paper not found.</p>';
- const s=score(q,p),nm=who(p.sid);
+ const s=score(q,p),nm=who(p.sid),miss=Sheet.missing(q,p),K='paper:'+p.id,all=Sheet.items(q);
  const it=i=>{const k=q.key[i.no];return `<div class="it${p.multi&&p.multi[i.no]?' multi':''}"><b>${i.no}</b>${Array.from({length:i.opts},(_,j)=>{const l=Sheet.lab(i.tf,j),on=p.answers[i.no]===l;return `<button class="o${on?(k?(l===k?' ok':' bad'):' on'):''}${k===l?' key':''}" data-a="ans" data-q="${q.id}" data-id="${p.id}" data-n="${i.no}" data-l="${l}">${l}</button>`}).join('')}</div>`};
- return `<div class="top"><a class="back" href="#/quiz/${q.id}/results">‹</a><h1>${s.r} / ${s.t} = ${s.p}%</h1></div><div class="meta">${esc(nm||(p.sid?'ID not in roster':'No ID yet'))}</div>`+(p.crop?`<img class="crop" alt="Handwritten name" src="${p.crop}">`:'')+
- `<div class="row"><label>Student ID <input data-p="sid" data-q="${q.id}" data-id="${p.id}" value="${esc(p.sid)}" placeholder="XX-XX" size="6"></label><button class="btn del" data-a="delPaper" data-q="${q.id}" data-id="${p.id}">Delete paper</button></div>
- <p class="sub">Tap a bubble to change it. Green correct, red wrong, ring = key, yellow = multiple marks.</p><div class="items">${Sheet.items(q).map(it).join('')}</div>`;
+ const parts=q.sections.map((sec,si)=>{
+  const its=all.filter(x=>x.si===si),ks=its.filter(x=>q.key[x.no]),ok=ks.filter(x=>p.answers[x.no]===q.key[x.no]).length;
+  return V.partHead(q,sec,si,its,ok,ks.length,K,0,'').replace('class="pcount">','class="pcount" title="correct / keyed">')+`<div class="pbody"><div class="items">${Sheet.blocks(q).filter(b=>b[0].si===si).map(b=>`<div class="g5">${b.map(it).join('')}</div>`).join('')}</div></div></details>`}).join('');
+ return `<div class="top"><a class="back" href="#/quiz/${q.id}/results">‹</a><h1>${s.r} / ${s.t} = ${s.p}%</h1></div><div class="meta">${esc(nm||(p.sid?'ID not in roster':'No ID yet'))}</div>`+
+ (miss.length?`<div class="note">Sheet ${miss.join(' and ')} of ${Sheet.pageCount(q)} has not been scanned for this paper. Missing answers count as blank.</div>`:'')+
+ (p.crop?`<img class="crop" alt="Handwritten name" src="${p.crop}">`:'')+
+ `<div class="row"><label class="inl">Student ID <input data-p="sid" data-q="${q.id}" data-id="${p.id}" value="${esc(p.sid)}" placeholder="XX-XX" size="6"></label><button class="btn del" data-a="delPaper" data-q="${q.id}" data-id="${p.id}">Delete paper</button></div>
+ <p class="sub">Tap a bubble to change it. Green is correct, red is wrong, a ring marks the key, yellow rows had several marks.</p><div class="plist">${parts}</div>`;
 };
 
 Object.assign(V.A,{
  tab:d=>{tab=d.t;App.render()},
  addPaper:d=>{const q=S.quiz(d.id),p={id:uid(),sid:'',answers:{},at:Date.now()};(q.papers=q.papers||[]).push(p);S.save();location.hash=`#/paper/${q.id}/${p.id}`},
- ans:d=>{const p=S.quiz(d.q).papers.find(x=>x.id===d.id);if(p.answers[d.n]===d.l)delete p.answers[d.n];else p.answers[d.n]=d.l;S.save();const y=scrollY;App.render();scrollTo(0,y)},
+ ans:d=>{const p=S.quiz(d.q).papers.find(x=>x.id===d.id);if(p.answers[d.n]===d.l)delete p.answers[d.n];else p.answers[d.n]=d.l;S.save();App.render(true)},
  delPaper:d=>{if(!confirm('Delete this paper?'))return;const q=S.quiz(d.q);q.papers=q.papers.filter(x=>x.id!==d.id);S.save();location.hash='#/quiz/'+q.id+'/results'},
  csv:d=>{const q=S.quiz(d.id),its=Sheet.items(q),rows=[['ID','Name','Score','Total','Percent',...its.map(i=>'Q'+i.no)],['','','','','Key',...its.map(i=>q.key[i.no]||'')]];
   (q.papers||[]).forEach(p=>{const s=score(q,p);rows.push([p.sid,who(p.sid)||'',s.r,s.t,s.p,...its.map(i=>p.answers[i.no]||'')])});

@@ -59,17 +59,31 @@ function quad(cv,q){
  return{dark:s/(g.length/16)<70,q:findMarks(g,w,h,...(l=>[l.W,l.H])(Sheet.layout(q)))};
 }
 
-// Full read of one photo for quiz q.
-function read(cv,q){
- const w=cv.width,h=cv.height,g=gray(cv.getContext('2d').getImageData(0,0,w,h)),lay=Sheet.layout(q),o=Sheet.opts(q);
- if(lay.pages.length>1)return{err:'This quiz needs more than one page. Scanning supports single-page sheets for now.'};
+// Which sheet is this? 4 small boxes at the left edge hold the page number in binary (top box = 1).
+// Each box is compared with the white gaps between the boxes, so lighting changes do not matter.
+function pageCode(g,w,h,H,geo){
+ const ref=geo.gaps.reduce((a,b2)=>a+mean(g,w,h,H,b2.x,b2.y,.6),0)/geo.gaps.length;
+ return geo.code.reduce((n,b2,k)=>mean(g,w,h,H,b2.x,b2.y,1)<ref*.55?n|(1<<k):n,0);
+}
+
+// Full read of one photo for quiz q. hint = the sheet the screen expects next (used only if the page number is unreadable).
+function read(cv,q,hint){
+ const w=cv.width,h=cv.height,g=gray(cv.getContext('2d').getImageData(0,0,w,h)),lay=Sheet.layout(q),o=Sheet.opts(q),np=lay.pages.length;
  const m=findMarks(g,w,h,lay.W,lay.H);if(!m)return{err:'Could not find all four corner squares. Show the whole sheet, upright and flat.'};
- const geo=Sheet.geo(lay),H=homog(geo.marks,m),answers={},multi={};let digits='';
- geo.id.forEach(col=>{const on=shaded(col.map(b=>mean(g,w,h,H,b.x,b.y,1.4)));digits+=on.length===1?col[on[0]].d:'?'});
- lay.pages[0].cells.forEach(c=>{if(c.h)return;const on=shaded(c.bubbles.map(b=>mean(g,w,h,H,b.x,b.y,lay.r*.67)));
+ const geo=Sheet.geo(lay),H=homog(geo.marks,m),answers={},multi={};let digits='',page=1,guessed=false;
+ if(np>1){
+  page=pageCode(g,w,h,H,geo);
+  if(!page||page>np){
+   if(hint>=1&&hint<=np){page=hint;guessed=true}
+   else return{err:'Could not read the page number printed on the left edge. Show the whole sheet, upright and flat.'}
+  }
+ }
+ (page===1?geo.id:geo.id2).forEach(col=>{const on=shaded(col.map(b=>mean(g,w,h,H,b.x,b.y,1.4)));digits+=on.length===1?col[on[0]].d:'?'});
+ const nos=[];
+ lay.pages[page-1].cells.forEach(c=>{if(c.h)return;nos.push(c.no);const on=shaded(c.bubbles.map(b=>mean(g,w,h,H,b.x,b.y,lay.r*.67)));
   if(on.length===1)answers[c.no]=c.bubbles[on[0]].l;else if(on.length>1)multi[c.no]=1});
  const idOk=!digits.includes('?');
- return{idOk,sid:idOk?digits.slice(0,2)+'-'+digits.slice(2):'',answers,multi,crop:o.name?crop(g,w,h,H,geo.name):null};
+ return{page,pages:np,guessed,nos,idOk,sid:idOk?digits.slice(0,2)+'-'+digits.slice(2):'',answers,multi,crop:page===1&&o.name?crop(g,w,h,H,geo.name):null};
 }
 return{quad,read};
 })();

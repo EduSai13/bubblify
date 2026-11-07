@@ -35,17 +35,15 @@ const bar=()=>{const o=(v,t,c)=>`<option value="${esc(v)}"${v===c?' selected':''
 V.R.quizzes=()=>`<div class="row"><h1 style="margin:0;flex:1">Quizzes</h1><button class="btn pri" data-a="newQuiz">New quiz</button></div>${bar()}<div id="qlist" data-m="quizzes">${body('quizzes')}</div>`;
 const detail=V.R.results;
 V.R.results=id=>id?detail(id):`<h1>Results</h1><p class="sub">Pick a test to see its scores and item analysis.</p>${bar()}<div id="qlist" data-m="results">${body('results')}</div>`;
-const editor=V.R.quiz;
-V.R.quiz=id=>{const q=S.quiz(id),h=editor(id);if(!q)return h;const on=q.tags||[];
- return h.replace('<div class="sec">',()=>`<div class="row"><span>Tags:</span>${allTags().map(t=>`<button class="tg${on.includes(t)?' on':''}" data-a="tag" data-id="${q.id}" data-t="${esc(t)}">${esc(t)}</button>`).join('')}<button class="btn" data-a="newTag" data-id="${q.id}">+ Custom</button></div><div class="sec">`)};
+const tagRow=q=>{const on=q.tags||[];return `<div class="row tags"><span>Tags</span>${allTags().map(t=>`<button class="tg${on.includes(t)?' on':''}" data-a="tag" data-id="${q.id}" data-t="${esc(t)}">${esc(t)}</button>`).join('')}<button class="btn" data-a="newTag" data-id="${q.id}">+ Custom</button></div>`};
 
 Object.assign(V.A,{
  dupQuiz:d=>{const q=S.quiz(d.id),c=JSON.parse(JSON.stringify(q));Object.assign(c,{id:uid(),name:q.name+' (copy)',papers:[],created:Date.now()});S.data().quizzes.unshift(c);S.save();location.hash='#/quiz/'+c.id+'/edit'},
- tag:d=>{const q=S.quiz(d.id),t=q.tags=q.tags||[],i=t.indexOf(d.t);i<0?t.push(d.t):t.splice(i,1);S.save();const y=scrollY;App.render();scrollTo(0,y)},
+ tag:d=>{const q=S.quiz(d.id),t=q.tags=q.tags||[],i=t.indexOf(d.t);i<0?t.push(d.t):t.splice(i,1);S.save();App.render(true)},
  newTag:d=>{const n=(prompt('Tag name')||'').trim().slice(0,24);if(!n)return;const q=S.quiz(d.id);q.tags=q.tags||[];if(!q.tags.includes(n))q.tags.push(n);S.save();App.render()}
 });
 document.getElementById('view').addEventListener('input',ev=>{const e=ev.target;if(e.dataset.l==='q'){f.q=e.value;const L=document.getElementById('qlist');if(L)L.innerHTML=body(L.dataset.m)}});
 const prev=V.change;
 V.change=el=>{if(el.dataset.l){if(el.dataset.l!=='q'){f[el.dataset.l]=el.value;App.render()}return}prev(el)};
-return{label,cname,fmt,first,card};
+return{label,cname,fmt,first,card,tagRow};
 })();

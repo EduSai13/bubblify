@@ -10,7 +10,7 @@ const hub=q=>{
  const it=Sheet.items(q),k=it.filter(i=>q.key[i.no]).length,ps=q.papers||[],o=Sheet.opts(q);
  const mean=ps.length?Math.round(ps.reduce((a,p)=>a+sc(q,p).v,0)/ps.length):0;
  const c=(s,t,d)=>`<a class="card hub" href="#/quiz/${q.id}/${s}">${Icons.i(s,28)}<span><b>${t}</b><small>${d}</small></span></a>`;
- return `<div class="grid hubs">${c('edit','Edit quiz',`${it.length} items, key ${k}/${it.length}`)}${c('sheets','Prepare sheets',`${o.paper}, ${o.copies} ${o.copies>1?'copies':'copy'}`)}${c('scan','Scan papers','Camera or photos')}${c('results','View results',ps.length?`${ps.length} papers, mean ${mean}%`:'No papers yet')}</div>
+ return `<div class="grid hubs">${c('edit','Edit quiz',`${it.length} items, key ${k}/${it.length}`)}${c('sheets','Prepare sheets',`${o.paper}, ${Sheet.pageCount(q)>1?Sheet.pageCount(q)+' sheets each, ':''}${o.copies} ${o.copies>1?'copies':'copy'}`)}${c('scan','Scan papers','Camera or photos')}${c('results','View results',ps.length?`${ps.length} papers, mean ${mean}%`:'No papers yet')}</div>
  <div class="row"><button class="btn" data-a="dupQuiz" data-id="${q.id}">Duplicate quiz</button></div>`;
 };
 

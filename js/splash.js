@@ -4,7 +4,7 @@
  sessionStorage.setItem('bubblify.splash','1');
  const sq=[[262,326,418,418],[262,758,418,416],[694,758,416,416],[262,1190,418,416],[694,1190,416,416]],d=document.createElement('div');
  d.id='splash';
- d.innerHTML=`<svg viewBox="200 260 1530 1410" aria-hidden="true">${sq.map(([x,y,w,h])=>`<rect class="sq" x="${x}" y="${y}" width="${w}" height="${h}" fill="#F2EBD8"/>`).join('')}<rect class="sq" x="551" y="1047" width="272" height="270" fill="#395442" stroke="#F2EBD8" stroke-width="3"/><path id="sh" d="M1492 970A215 215 0 0 1 1424 1390Z" fill="#F2EBD8" opacity="0"/><circle id="sr" cx="967" cy="965" r="95" fill="none" stroke="#F2EBD8" stroke-width="40"/><circle id="sd" cx="967" cy="965" r="48" fill="#C6D94C"/></svg>`;
+ d.innerHTML=`<svg viewBox="200 260 1530 1410" aria-hidden="true">${sq.map(([x,y,w,h])=>`<rect class="sq" x="${x}" y="${y}" width="${w}" height="${h}" fill="#F4EFE8"/>`).join('')}<rect class="sq" x="551" y="1047" width="272" height="270" fill="#2F3A33" stroke="#F4EFE8" stroke-width="3"/><path id="sh" d="M1492 970A215 215 0 0 1 1424 1390Z" fill="#F4EFE8" opacity="0"/><circle id="sr" cx="967" cy="965" r="95" fill="none" stroke="#F4EFE8" stroke-width="40"/><circle id="sd" cx="967" cy="965" r="48" fill="#C6D94C"/></svg>`;
  document.body.appendChild(d);
  const $=s=>d.querySelector(s),r=$('#sr'),o=$('#sd'),h=$('#sh'),q=[...d.querySelectorAll('.sq')];
  const L=(a,b,t)=>a+(b-a)*t,E=x=>x<=0?0:x>=1?1:x*x*(3-2*x),t0=performance.now();

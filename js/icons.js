@@ -28,9 +28,9 @@ const P={
 };
 const i=(n,s=20)=>`<svg class="i" width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true">${P[n]||''}</svg>`;
 const btn=(n,label,keep)=>i(n)+(keep?`<span>${label}</span>`:'');
-const logo=(s=26)=>`<svg width="${s}" height="${s}" viewBox="240 300 1450 1330" aria-hidden="true" style="color:#F2EBD8">`+
+const logo=(s=26)=>`<svg width="${s}" height="${s}" viewBox="240 300 1450 1330" aria-hidden="true" style="color:#F4EFE8">`+
  [[262,326,418,418],[262,758,418,416],[694,758,416,416],[262,1190,418,416],[694,1190,416,416]].map(([x,y,w,h])=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="currentColor"/>`).join('')+
- `<rect x="551" y="1047" width="272" height="270" fill="#395442" stroke="currentColor" stroke-width="6"/><circle cx="1460" cy="1181" r="214" fill="none" stroke="currentColor" stroke-width="12"/><path d="M1492 970A215 215 0 0 1 1424 1390Z" fill="currentColor"/></svg>`;
+ `<rect x="551" y="1047" width="272" height="270" fill="#2F3A33" stroke="currentColor" stroke-width="6"/><circle cx="1460" cy="1181" r="214" fill="none" stroke="currentColor" stroke-width="12"/><path d="M1492 970A215 215 0 0 1 1424 1390Z" fill="currentColor"/></svg>`;
 
 // label -> [icon, show text?, shorter label?]
 const MAP={

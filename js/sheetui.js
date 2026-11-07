@@ -19,9 +19,9 @@ V.R.sheet=id=>{
  ${f('Copies',`<input type="number" min="1" max="100" data-o="copies" value="${o.copies}">`)}
  ${chk(o,'name','Show name field')}${chk(o,'calib','Calibration bar')}
  ${f('Instructions',`<textarea rows="3" data-o="instr">${esc(o.instr)}</textarea>`)}
- <p class="sub">Columns: ${k.lay.cols} of ${k.lay.max}. Row size ${Math.round(k.lay.P*10)/10} mm.${k.lay.pages.length>1?' Too many items for one sheet at this paper size.':''} ${k.lay.pages.length} page(s) per sheet, ${k.svgs.length} paper(s) to print.</p></div>
+ <p class="sub">Columns: ${k.lay.cols} of ${k.lay.max}. Row size ${Math.round(k.lay.P*10)/10} mm. ${k.svgs.length} paper${k.svgs.length>1?'s':''} to print.</p>${k.lay.pages.length>1?`<p class="note info">This test prints on ${k.lay.pages.length} pages per student. Each page carries its own page number and a student ID, so the scanner can tell them apart and match them automatically.</p>`:''}</div>
  <div><div class="row"><button class="btn pri" data-a="print" data-id="${q.id}">Print or save as PDF</button><span class="sub" style="margin:0">Print at 100% / Actual size</span></div>
- <div class="pages">${k.svgs.map(s=>`<div class="pv${land?' land':''}">${s}</div>`).join('')}</div></div></div>`;
+ <div class="pages">${k.svgs.map((s,i)=>`<div class="pv${land?' land':''}">${k.labels[i]?`<div class="cap">${k.labels[i]}</div>`:''}${s}</div>`).join('')}</div></div></div>`;
 };
 
 V.A.print=d=>{
